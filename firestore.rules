@@ -1,0 +1,29 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // POIs: anyone can read, authenticated users can create
+    match /pois/{poiId} {
+      allow read: if true;
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasAll(['lat', 'lng', 'type', 'geoHash', 'createdBy', 'createdAt'])
+        && request.resource.data.lat is number
+        && request.resource.data.lng is number
+        && request.resource.data.type is string
+        && request.resource.data.createdBy == request.auth.uid;
+
+      // Only allow updating upvotes/downvotes (via transaction)
+      allow update: if request.auth != null
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['upvotes', 'downvotes']);
+
+      // Votes subcollection: one vote per user per POI
+      match /votes/{uid} {
+        allow read: if request.auth != null && request.auth.uid == uid;
+        allow create: if request.auth != null
+          && request.auth.uid == uid
+          && !exists(/databases/$(database)/documents/pois/$(poiId)/votes/$(uid));
+      }
+    }
+  }
+}

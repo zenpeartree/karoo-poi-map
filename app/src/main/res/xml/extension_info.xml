@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ExtensionInfo
+    id="karoo-poi-map"
+    displayName="@string/app_name"
+    icon="@drawable/ic_launcher"
+    scansDevices="false"
+    mapLayer="true">
+</ExtensionInfo>
