@@ -27,17 +27,23 @@ All POIs are synced automatically — add a water fountain on your ride, and eve
 ### Prerequisites
 
 - Hammerhead Karoo (K2 or later) with developer mode enabled
-- ADB installed on your computer ([install guide](https://developer.android.com/tools/adb))
 - WiFi connection for initial POI sync (POIs are cached for offline rides)
 
-### Steps
+### Option 1: Via Hammerhead Companion App (easiest)
 
-1. Download the latest `app-release.apk` from [Releases](../../releases)
-2. Connect to your Karoo via ADB:
+1. Download the latest `app-release.apk` from [Releases](../../releases) on your phone
+2. Tap **Share** on the downloaded file and select the **Hammerhead** companion app
+3. The APK is automatically sent to your linked Karoo and installed
+
+### Option 2: Via ADB
+
+1. Install ADB on your computer ([install guide](https://developer.android.com/tools/adb))
+2. Download the latest `app-release.apk` from [Releases](../../releases)
+3. Connect to your Karoo via ADB:
    ```bash
    adb connect <karoo-ip>:5555
    ```
-3. Install:
+4. Install:
    ```bash
    adb install app-release.apk
    ```
