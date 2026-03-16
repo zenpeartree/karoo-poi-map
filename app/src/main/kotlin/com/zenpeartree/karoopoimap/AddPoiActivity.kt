@@ -208,6 +208,9 @@ class AddPoiActivity : Activity() {
                     statusText.setTextColor(Color.parseColor("#4CAF50"))
                     Toast.makeText(this, "${type.label} added!", Toast.LENGTH_SHORT).show()
 
+                    // Refresh map layer with new POI
+                    KarooPoiExtension.instance?.refreshMap()
+
                     // Reset form
                     selectedType = null
                     selectedTypeText.text = "No type selected"

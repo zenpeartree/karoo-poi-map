@@ -7,6 +7,7 @@ import io.hammerhead.karooext.internal.Emitter
 import io.hammerhead.karooext.models.MapEffect
 import io.hammerhead.karooext.models.OnLocationChanged
 import io.hammerhead.karooext.models.ShowSymbols
+import io.hammerhead.karooext.models.SystemNotification
 
 class KarooPoiExtension : KarooExtension("karoo-poi-map", "1") {
 
@@ -14,8 +15,12 @@ class KarooPoiExtension : KarooExtension("karoo-poi-map", "1") {
         private const val TAG = "KarooPoiExt"
         private const val FETCH_RADIUS_KM = 10.0
         private const val MIN_MOVE_METERS = 500.0
+        private const val ADD_POI_INTENT = "com.zenpeartree.karoopoimap.ADD_POI"
+        private const val NOTIFICATION_ID = "poi-add-notification"
 
         var repository: PoiRepository? = null
+            private set
+        var instance: KarooPoiExtension? = null
             private set
     }
 
@@ -27,16 +32,32 @@ class KarooPoiExtension : KarooExtension("karoo-poi-map", "1") {
 
     override fun onCreate() {
         super.onCreate()
+        instance = this
         karooSystem = KarooSystemService(this)
         repository = PoiRepository(this)
 
         karooSystem.connect { connected ->
             if (connected) {
                 Log.i(TAG, "Connected to Karoo System")
+                showAddPoiNotification()
             } else {
                 Log.w(TAG, "Failed to connect to Karoo System")
             }
         }
+    }
+
+    private fun showAddPoiNotification() {
+        val dispatched = karooSystem.dispatch(
+            SystemNotification(
+                id = NOTIFICATION_ID,
+                header = "POI Map",
+                message = "Add a point of interest",
+                action = "Add POI",
+                actionIntent = ADD_POI_INTENT,
+                style = SystemNotification.Style.EVENT,
+            )
+        )
+        Log.i(TAG, "Add POI notification dispatched: $dispatched")
     }
 
     override fun startMap(emitter: Emitter<MapEffect>) {
@@ -83,6 +104,7 @@ class KarooPoiExtension : KarooExtension("karoo-poi-map", "1") {
         mapEmitter = null
         karooSystem.disconnect()
         repository = null
+        instance = null
         super.onDestroy()
     }
 
