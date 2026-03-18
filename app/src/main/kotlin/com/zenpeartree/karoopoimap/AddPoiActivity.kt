@@ -3,6 +3,7 @@ package com.zenpeartree.karoopoimap
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.graphics.Typeface
@@ -208,14 +209,14 @@ class AddPoiActivity : Activity() {
                     statusText.setTextColor(Color.parseColor("#4CAF50"))
                     Toast.makeText(this, "${type.label} added!", Toast.LENGTH_SHORT).show()
 
-                    // Refresh map layer with new POI
-                    KarooPoiExtension.instance?.refreshMap()
+                    sendBroadcast(Intent(KarooPoiExtension.REFRESH_MAP_INTENT).setPackage(packageName))
 
                     // Reset form
                     selectedType = null
                     selectedTypeText.text = "No type selected"
                     nameInput.setText("")
                     addButton.isEnabled = false
+                    finish()
                 } else {
                     statusText.text = "Failed to add. Check connection."
                     statusText.setTextColor(Color.RED)

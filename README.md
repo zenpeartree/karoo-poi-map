@@ -1,14 +1,15 @@
 # Karoo POI Map
 
-A community-driven points of interest app for [Hammerhead Karoo](https://www.hammerhead.io/) bike computers. Add and share water points, hazards, bike shops, and more — visible directly on the Karoo ride map.
+Karoo POI Map adds a shared POI layer to [Hammerhead Karoo](https://www.hammerhead.io/) bike computers. It shows nearby community-submitted points on the ride map and lets you add new ones from the device.
 
 **[Download the latest APK](https://github.com/zenpeartree/karoo-poi-map/releases/latest/download/app-release.apk)**
 
-## How It Works
+## Current State
 
-The app adds a **map layer** to your Karoo. During rides, community-shared POIs appear on the map as you move. You can also add new points at your current location for other riders to see.
-
-All POIs are synced automatically — add a water fountain on your ride, and every Karoo POI Map user will see it on theirs.
+- Shows nearby POIs as a Karoo map layer during rides
+- Fetches POIs from Firebase and caches them locally for offline use
+- Lets you add POIs from the app drawer or from Control Center while riding
+- Refreshes the visible map layer immediately after a successful add
 
 ## POI Types
 
@@ -24,26 +25,26 @@ All POIs are synced automatically — add a water fountain on your ride, and eve
 
 ## Install
 
-### Prerequisites
+### Requirements
 
-- Hammerhead Karoo (K2 or later) with developer mode enabled
-- WiFi connection for initial POI sync (POIs are cached for offline rides)
+- Hammerhead Karoo with developer mode enabled
+- Wi-Fi or mobile connectivity for initial POI sync and uploads
 
-### Option 1: Via Hammerhead Companion App (easiest)
+### Option 1: Hammerhead Companion App
 
 1. Download the latest `app-release.apk` from [Releases](../../releases) on your phone
-2. Tap **Share** on the downloaded file and select the **Hammerhead** companion app
-3. The APK is automatically sent to your linked Karoo and installed
+2. Tap **Share** on the APK and choose the **Hammerhead** companion app
+3. The companion app sends it to your linked Karoo for installation
 
-### Option 2: Via ADB
+### Option 2: ADB
 
 1. Install ADB on your computer ([install guide](https://developer.android.com/tools/adb))
 2. Download the latest `app-release.apk` from [Releases](../../releases)
-3. Connect to your Karoo via ADB:
+3. Connect to the Karoo:
    ```bash
    adb connect <karoo-ip>:5555
    ```
-4. Install:
+4. Install the APK:
    ```bash
    adb install app-release.apk
    ```
@@ -52,21 +53,32 @@ All POIs are synced automatically — add a water fountain on your ride, and eve
 
 ### Viewing POIs
 
-Just start a ride — POIs appear on the map automatically as you move through areas where other riders have added points. The app caches nearby POIs so they remain visible even without a connection.
+Start a ride and enable the POI map layer on the Karoo map. Nearby POIs are fetched as you move and cached locally so recently seen points remain available when connectivity drops.
 
-### Adding a POI
+### Adding a POI During a Ride
 
-1. Open **Karoo POI Map** from the app drawer
-2. Your current GPS location is shown automatically
-3. Select a POI type from the grid
-4. Optionally add a name (e.g., "Fountain near the park")
+1. Open Control Center
+2. Tap the **POI Map** action
+3. Wait for the current location to load
+4. Choose a POI type
+5. Optionally enter a name
+6. Tap **Add Point**
+
+After saving, the add screen closes and returns to the ride map.
+
+### Adding a POI From the App Drawer
+
+1. Open **Karoo POI Map**
+2. Wait for the current location to load
+3. Choose a POI type
+4. Optionally enter a name
 5. Tap **Add Point**
 
-The POI is instantly available to all other users.
+## Notes
 
-### Community Moderation
-
-POIs can be upvoted or downvoted by the community. Points with too many downvotes are automatically hidden, keeping the map clean as conditions change (e.g., a water fountain that no longer works).
+- The app uses anonymous Firebase authentication in the background
+- POIs are cached on-device in shared preferences
+- Vote fields exist in the data model, but there is currently no voting UI in the app
 
 ## License
 

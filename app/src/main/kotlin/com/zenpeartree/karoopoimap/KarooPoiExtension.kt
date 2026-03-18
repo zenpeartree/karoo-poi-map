@@ -1,5 +1,9 @@
 package com.zenpeartree.karoopoimap
 
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.util.Log
 import io.hammerhead.karooext.KarooSystemService
 import io.hammerhead.karooext.extension.KarooExtension
@@ -15,12 +19,11 @@ class KarooPoiExtension : KarooExtension("karoo-poi-map", "1") {
         private const val TAG = "KarooPoiExt"
         private const val FETCH_RADIUS_KM = 10.0
         private const val MIN_MOVE_METERS = 500.0
-        private const val ADD_POI_INTENT = "com.zenpeartree.karoopoimap.ADD_POI"
+        const val ADD_POI_INTENT = "com.zenpeartree.karoopoimap.ADD_POI"
+        const val REFRESH_MAP_INTENT = "com.zenpeartree.karoopoimap.REFRESH_MAP"
         private const val NOTIFICATION_ID = "poi-add-notification"
 
         var repository: PoiRepository? = null
-            private set
-        var instance: KarooPoiExtension? = null
             private set
     }
 
@@ -29,17 +32,24 @@ class KarooPoiExtension : KarooExtension("karoo-poi-map", "1") {
     private var lastFetchLat = 0.0
     private var lastFetchLng = 0.0
     private var mapEmitter: Emitter<MapEffect>? = null
+    private var notificationShown = false
+    private val refreshReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == REFRESH_MAP_INTENT) {
+                refreshMap()
+            }
+        }
+    }
 
     override fun onCreate() {
         super.onCreate()
-        instance = this
         karooSystem = KarooSystemService(this)
         repository = PoiRepository(this)
+        registerReceiver(refreshReceiver, IntentFilter(REFRESH_MAP_INTENT))
 
         karooSystem.connect { connected ->
             if (connected) {
                 Log.i(TAG, "Connected to Karoo System")
-                showAddPoiNotification()
             } else {
                 Log.w(TAG, "Failed to connect to Karoo System")
             }
@@ -47,6 +57,7 @@ class KarooPoiExtension : KarooExtension("karoo-poi-map", "1") {
     }
 
     private fun showAddPoiNotification() {
+        if (notificationShown) return
         val dispatched = karooSystem.dispatch(
             SystemNotification(
                 id = NOTIFICATION_ID,
@@ -57,12 +68,14 @@ class KarooPoiExtension : KarooExtension("karoo-poi-map", "1") {
                 style = SystemNotification.Style.EVENT,
             )
         )
+        notificationShown = dispatched
         Log.i(TAG, "Add POI notification dispatched: $dispatched")
     }
 
     override fun startMap(emitter: Emitter<MapEffect>) {
         mapEmitter = emitter
         Log.i(TAG, "Map layer started")
+        showAddPoiNotification()
 
         // Show cached POIs immediately
         val cached = repository?.getCachedPois() ?: emptyList()
@@ -102,9 +115,9 @@ class KarooPoiExtension : KarooExtension("karoo-poi-map", "1") {
     override fun onDestroy() {
         locationConsumerId?.let { karooSystem.removeConsumer(it) }
         mapEmitter = null
+        unregisterReceiver(refreshReceiver)
         karooSystem.disconnect()
         repository = null
-        instance = null
         super.onDestroy()
     }
 
