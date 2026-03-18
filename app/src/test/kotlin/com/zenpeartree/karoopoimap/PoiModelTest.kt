@@ -40,6 +40,18 @@ class PoiModelTest {
     }
 
     @Test
+    fun `Poi displayName uses type label when name is blank`() {
+        val poi = Poi(id = "1", type = PoiType.WATER, name = "")
+        assertEquals("Water", poi.displayName)
+    }
+
+    @Test
+    fun `Poi displayName uses name when provided`() {
+        val poi = Poi(id = "1", type = PoiType.WATER, name = "Park fountain")
+        assertEquals("Park fountain", poi.displayName)
+    }
+
+    @Test
     fun `Poi toSymbol uses type label when name is blank`() {
         val poi = Poi(id = "1", lat = 40.0, lng = -8.0, type = PoiType.WATER, name = "")
         val symbol = poi.toSymbol()

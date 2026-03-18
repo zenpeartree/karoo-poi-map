@@ -27,6 +27,17 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".VotePoiActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:theme="@android:style/Theme.DeviceDefault.Light">
+            <intent-filter>
+                <action android:name="com.zenpeartree.karoopoimap.VOTE_POI" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
         <service
             android:name=".KarooPoiExtension"
             android:exported="true">

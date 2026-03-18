@@ -9,6 +9,7 @@ Karoo POI Map adds a shared POI layer to [Hammerhead Karoo](https://www.hammerhe
 - Shows nearby POIs as a Karoo map layer during rides
 - Fetches POIs from Firebase and caches them locally for offline use
 - Lets you add POIs from the app drawer or from Control Center while riding
+- Lets you review nearby cached POIs and upvote or downvote them from the app drawer or Control Center
 - Refreshes the visible map layer immediately after a successful add
 
 ## POI Types
@@ -74,11 +75,28 @@ After saving, the add screen closes and returns to the ride map.
 4. Optionally enter a name
 5. Tap **Add Point**
 
+### Voting on Nearby POIs
+
+From the app drawer:
+
+1. Open **Karoo POI Map**
+2. Tap **Review Nearby POIs**
+3. Wait for the nearby cached list to load
+4. Upvote useful POIs or downvote stale ones
+
+During a ride:
+
+1. Open Control Center
+2. Tap the **POI Map** vote action
+3. Review nearby cached POIs
+4. Submit an upvote or downvote
+
+Votes are submitted once per rider account and the map refreshes after a successful vote.
+
 ## Notes
 
 - The app uses anonymous Firebase authentication in the background
 - POIs are cached on-device in shared preferences
-- Vote fields exist in the data model, but there is currently no voting UI in the app
 
 ## License
 

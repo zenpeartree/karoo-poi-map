@@ -20,8 +20,10 @@ class KarooPoiExtension : KarooExtension("karoo-poi-map", "1") {
         private const val FETCH_RADIUS_KM = 10.0
         private const val MIN_MOVE_METERS = 500.0
         const val ADD_POI_INTENT = "com.zenpeartree.karoopoimap.ADD_POI"
+        const val VOTE_POI_INTENT = "com.zenpeartree.karoopoimap.VOTE_POI"
         const val REFRESH_MAP_INTENT = "com.zenpeartree.karoopoimap.REFRESH_MAP"
-        private const val NOTIFICATION_ID = "poi-add-notification"
+        private const val ADD_NOTIFICATION_ID = "poi-add-notification"
+        private const val VOTE_NOTIFICATION_ID = "poi-vote-notification"
 
         var repository: PoiRepository? = null
             private set
@@ -32,7 +34,8 @@ class KarooPoiExtension : KarooExtension("karoo-poi-map", "1") {
     private var lastFetchLat = 0.0
     private var lastFetchLng = 0.0
     private var mapEmitter: Emitter<MapEffect>? = null
-    private var notificationShown = false
+    private var addNotificationShown = false
+    private var voteNotificationShown = false
     private val refreshReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == REFRESH_MAP_INTENT) {
@@ -56,11 +59,16 @@ class KarooPoiExtension : KarooExtension("karoo-poi-map", "1") {
         }
     }
 
+    private fun showRideNotifications() {
+        showAddPoiNotification()
+        showVotePoiNotification()
+    }
+
     private fun showAddPoiNotification() {
-        if (notificationShown) return
+        if (addNotificationShown) return
         val dispatched = karooSystem.dispatch(
             SystemNotification(
-                id = NOTIFICATION_ID,
+                id = ADD_NOTIFICATION_ID,
                 header = "POI Map",
                 message = "Add a point of interest",
                 action = "Add POI",
@@ -68,14 +76,30 @@ class KarooPoiExtension : KarooExtension("karoo-poi-map", "1") {
                 style = SystemNotification.Style.EVENT,
             )
         )
-        notificationShown = dispatched
+        addNotificationShown = dispatched
         Log.i(TAG, "Add POI notification dispatched: $dispatched")
+    }
+
+    private fun showVotePoiNotification() {
+        if (voteNotificationShown) return
+        val dispatched = karooSystem.dispatch(
+            SystemNotification(
+                id = VOTE_NOTIFICATION_ID,
+                header = "POI Map",
+                message = "Review nearby points",
+                action = "Vote POIs",
+                actionIntent = VOTE_POI_INTENT,
+                style = SystemNotification.Style.EVENT,
+            )
+        )
+        voteNotificationShown = dispatched
+        Log.i(TAG, "Vote POI notification dispatched: $dispatched")
     }
 
     override fun startMap(emitter: Emitter<MapEffect>) {
         mapEmitter = emitter
         Log.i(TAG, "Map layer started")
-        showAddPoiNotification()
+        showRideNotifications()
 
         // Show cached POIs immediately
         val cached = repository?.getCachedPois() ?: emptyList()

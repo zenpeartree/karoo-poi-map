@@ -28,8 +28,9 @@ data class Poi(
     val upvotes: Int = 0,
     val downvotes: Int = 0,
 ) {
+    val displayName: String get() = if (name.isNotBlank()) name else type.label
+
     fun toSymbol(): Symbol.POI {
-        val displayName = if (name.isNotBlank()) name else type.label
         return Symbol.POI(
             id = id,
             lat = lat,

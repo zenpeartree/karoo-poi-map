@@ -142,6 +142,15 @@ class AddPoiActivity : Activity() {
         }
         layout.addView(addButton)
 
+        val voteButton = Button(this).apply {
+            text = "Review Nearby POIs"
+            textSize = 16f
+            isAllCaps = false
+            setPadding(0, 8, 0, 0)
+            setOnClickListener { startActivity(Intent(this@AddPoiActivity, VotePoiActivity::class.java)) }
+        }
+        layout.addView(voteButton)
+
         // Status
         statusText = TextView(this).apply {
             text = ""
