@@ -2,7 +2,7 @@
 
 Karoo POI Map adds a shared POI layer to [Hammerhead Karoo](https://www.hammerhead.io/) bike computers. It shows nearby community-submitted points on the ride map and lets you add new ones from the device.
 
-**[Download the latest APK](https://github.com/zenpeartree/karoo-poi-map/releases/latest/download/app-release.apk)**
+**[Download the latest APK](https://github.com/zenpeartree/karoo-poi-map/releases/download/v1.0.1-beta/app-release.apk)**
 
 ## Current State
 
