@@ -6,6 +6,7 @@ import android.util.Log
 import ch.hsr.geohash.GeoHash
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -37,6 +38,30 @@ class PoiRepository(context: Context) {
         }
     }
 
+    private fun withAuthenticatedUser(onResult: (Boolean) -> Unit, block: (String) -> Unit) {
+        val currentUid = auth.currentUser?.uid
+        if (!currentUid.isNullOrBlank()) {
+            block(currentUid)
+            return
+        }
+
+        auth.signInAnonymously()
+            .addOnSuccessListener { result ->
+                val uid = result.user?.uid
+                if (uid.isNullOrBlank()) {
+                    Log.e(TAG, "Anonymous auth returned no uid")
+                    onResult(false)
+                    return@addOnSuccessListener
+                }
+                Log.i(TAG, "Anonymous auth ready for action: $uid")
+                block(uid)
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Auth failed before action", e)
+                onResult(false)
+            }
+    }
+
     fun getCurrentUserId(): String = auth.currentUser?.uid ?: ""
 
     fun getCachedPois(): List<Poi> = cachedPois.filter { it.isVisible }
@@ -58,11 +83,12 @@ class PoiRepository(context: Context) {
                 val pois = snapshot.documents.mapNotNull { doc ->
                     Poi.fromFirestore(doc.id, doc.data ?: emptyMap())
                 }
+                val nearbyPois = filterPoisByRadius(pois, lat, lng, radiusKm)
                 cachedPois.clear()
-                cachedPois.addAll(pois)
+                cachedPois.addAll(nearbyPois)
                 saveCache()
-                Log.i(TAG, "Fetched ${pois.size} POIs near ($lat, $lng)")
-                onResult(pois.filter { it.isVisible })
+                Log.i(TAG, "Fetched ${nearbyPois.size} POIs within ${radiusKm}km of ($lat, $lng)")
+                onResult(nearbyPois.filter { it.isVisible })
             }
             .addOnFailureListener { e ->
                 Log.e(TAG, "Fetch failed, using cache", e)
@@ -71,57 +97,58 @@ class PoiRepository(context: Context) {
     }
 
     fun addPoi(poi: Poi, onResult: (Boolean) -> Unit) {
-        val geoHash = GeoHash.withCharacterPrecision(poi.lat, poi.lng, GEOHASH_PRECISION).toBase32()
-        val poiWithHash = poi.copy(
-            geoHash = geoHash,
-            createdBy = getCurrentUserId(),
-            createdAt = System.currentTimeMillis(),
-        )
+        withAuthenticatedUser(onResult) { uid ->
+            val geoHash = GeoHash.withCharacterPrecision(poi.lat, poi.lng, GEOHASH_PRECISION).toBase32()
+            val poiWithHash = poi.copy(
+                geoHash = geoHash,
+                createdBy = uid,
+                createdAt = System.currentTimeMillis(),
+            )
 
-        db.collection(COLLECTION)
-            .add(poiWithHash.toFirestoreMap())
-            .addOnSuccessListener { ref ->
-                val saved = poiWithHash.copy(id = ref.id)
-                cachedPois.add(saved)
-                saveCache()
-                Log.i(TAG, "Added POI ${ref.id}: ${poi.type.label} at (${poi.lat}, ${poi.lng})")
-                onResult(true)
-            }
-            .addOnFailureListener { e ->
-                Log.e(TAG, "Failed to add POI", e)
-                onResult(false)
-            }
+            db.collection(COLLECTION)
+                .add(poiWithHash.toFirestoreMap())
+                .addOnSuccessListener { ref ->
+                    val saved = poiWithHash.copy(id = ref.id)
+                    cachedPois.removeAll { it.id == saved.id }
+                    cachedPois.add(saved)
+                    saveCache()
+                    Log.i(TAG, "Added POI ${ref.id}: ${poi.type.label} at (${poi.lat}, ${poi.lng})")
+                    onResult(true)
+                }
+                .addOnFailureListener { e ->
+                    Log.e(TAG, "Failed to add POI", e)
+                    onResult(false)
+                }
+        }
     }
 
-    fun vote(poiId: String, upvote: Boolean, onResult: (Boolean) -> Unit) {
-        val uid = getCurrentUserId()
-        if (uid.isEmpty()) {
-            onResult(false)
-            return
-        }
-
-        val voteRef = db.collection(COLLECTION).document(poiId)
+    private fun persistVote(poiRefId: String, uid: String, upvote: Boolean, onResult: (Boolean) -> Unit) {
+        val voteRef = db.collection(COLLECTION).document(poiRefId)
             .collection("votes").document(uid)
 
         voteRef.get().addOnSuccessListener { doc ->
             if (doc.exists()) {
-                Log.i(TAG, "Already voted on $poiId")
+                Log.i(TAG, "Already voted on $poiRefId")
                 onResult(false)
                 return@addOnSuccessListener
             }
 
             val field = if (upvote) "upvotes" else "downvotes"
-            val poiRef = db.collection(COLLECTION).document(poiId)
+            val poiRef = db.collection(COLLECTION).document(poiRefId)
 
             db.runTransaction { tx ->
                 val snapshot = tx.get(poiRef)
                 val current = (snapshot.getLong(field) ?: 0) + 1
                 tx.update(poiRef, field, current)
-                tx.set(voteRef, mapOf("vote" to upvote, "ts" to System.currentTimeMillis()))
+                tx.set(
+                    voteRef,
+                    mapOf("vote" to upvote, "ts" to System.currentTimeMillis()),
+                    SetOptions.merge(),
+                )
             }
                 .addOnSuccessListener {
                     cachedPois.replaceAll { poi ->
-                        if (poi.id == poiId) {
+                        if (poi.id == poiRefId) {
                             if (upvote) poi.copy(upvotes = poi.upvotes + 1)
                             else poi.copy(downvotes = poi.downvotes + 1)
                         } else poi
@@ -133,6 +160,12 @@ class PoiRepository(context: Context) {
                     Log.e(TAG, "Vote failed", e)
                     onResult(false)
                 }
+        }
+    }
+
+    fun vote(poiId: String, upvote: Boolean, onResult: (Boolean) -> Unit) {
+        withAuthenticatedUser(onResult) { uid ->
+            persistVote(poiId, uid, upvote, onResult)
         }
     }
 

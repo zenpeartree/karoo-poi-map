@@ -153,6 +153,7 @@ class KarooPoiExtension : KarooExtension("karoo-poi-map", "1") {
         }
 
         // Subscribe to location to refresh POIs as rider moves
+        locationConsumerId?.let { karooSystem.removeConsumer(it) }
         locationConsumerId = karooSystem.addConsumer<OnLocationChanged>(
             onError = { Log.w(TAG, "Location error: $it") },
         ) { event ->
@@ -192,13 +193,4 @@ class KarooPoiExtension : KarooExtension("karoo-poi-map", "1") {
         super.onDestroy()
     }
 
-    private fun haversineMeters(lat1: Double, lng1: Double, lat2: Double, lng2: Double): Double {
-        val r = 6371000.0
-        val dLat = Math.toRadians(lat2 - lat1)
-        val dLng = Math.toRadians(lng2 - lng1)
-        val a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
-            Math.sin(dLng / 2) * Math.sin(dLng / 2)
-        return r * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-    }
 }
