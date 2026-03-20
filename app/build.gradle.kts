@@ -12,8 +12,8 @@ android {
         applicationId = "com.zenpeartree.karoopoimap"
         minSdk = 23
         targetSdk = 34
-        versionCode = 8
-        versionName = "1.0.1-beta"
+        versionCode = 9
+        versionName = "1.0.2-beta"
     }
 
     signingConfigs {

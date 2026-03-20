@@ -2,4 +2,5 @@
 <resources>
     <string name="app_name">Karoo POI Map</string>
     <string name="add_poi">Add POI</string>
+    <string name="review_pois">Review POIs</string>
 </resources>

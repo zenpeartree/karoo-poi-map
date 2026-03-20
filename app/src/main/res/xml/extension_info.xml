@@ -5,4 +5,10 @@
     icon="@drawable/ic_launcher"
     scansDevices="false"
     mapLayer="true">
+    <BonusAction
+        actionId="add-poi"
+        displayName="@string/add_poi" />
+    <BonusAction
+        actionId="review-pois"
+        displayName="@string/review_pois" />
 </ExtensionInfo>

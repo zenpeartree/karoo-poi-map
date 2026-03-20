@@ -23,6 +23,8 @@ class KarooPoiExtension : KarooExtension("karoo-poi-map", "1") {
         private const val FETCH_RADIUS_KM = 10.0
         private const val MIN_MOVE_METERS = 500.0
         private const val NOTIFICATION_REFRESH_INTERVAL_MS = 15_000L
+        private const val BONUS_ACTION_ADD_POI = "add-poi"
+        private const val BONUS_ACTION_REVIEW_POIS = "review-pois"
         const val ADD_POI_INTENT = "com.zenpeartree.karoopoimap.ADD_POI"
         const val VOTE_POI_INTENT = "com.zenpeartree.karoopoimap.VOTE_POI"
         const val REFRESH_MAP_INTENT = "com.zenpeartree.karoopoimap.REFRESH_MAP"
@@ -198,6 +200,28 @@ class KarooPoiExtension : KarooExtension("karoo-poi-map", "1") {
         val pois = repository?.getCachedPois() ?: return
         val emitter = mapEmitter ?: return
         emitter.onNext(ShowSymbols(pois.map { it.toSymbol() }))
+    }
+
+    override fun onBonusAction(actionId: String) {
+        when (actionId) {
+            BONUS_ACTION_ADD_POI -> {
+                Log.i(TAG, "Launching Add POI from bonus action")
+                startActivity(
+                    Intent(this, AddPoiActivity::class.java).apply {
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                )
+            }
+            BONUS_ACTION_REVIEW_POIS -> {
+                Log.i(TAG, "Launching Review POIs from bonus action")
+                startActivity(
+                    Intent(this, VotePoiActivity::class.java).apply {
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                )
+            }
+            else -> Log.w(TAG, "Unknown bonus action: $actionId")
+        }
     }
 
     override fun onDestroy() {

@@ -1,16 +1,17 @@
 # Karoo POI Map
 
-Karoo POI Map adds a shared POI layer to [Hammerhead Karoo](https://www.hammerhead.io/) bike computers. It shows nearby community-submitted points on the ride map and lets you add new ones from the device.
+Karoo POI Map adds a shared POI layer to [Hammerhead Karoo](https://www.hammerhead.io/) bike computers. It gives you two quick tile entrypoints on-device so you can add a point or review nearby ones without hunting through a disappearing notification tab.
 
-**[Download the latest APK](https://github.com/zenpeartree/karoo-poi-map/releases/download/v1.0.1-beta/app-release.apk)**
+**[Download the latest APK](https://github.com/zenpeartree/karoo-poi-map/releases/download/v1.0.2-beta/app-release.apk)**
 
-## Current State
+## What It Does
 
-- Shows nearby POIs as a Karoo map layer during rides
+- Shows nearby community-submitted POIs as a Karoo map layer during rides
+- Adds an **Add POI** tile that opens the add screen directly
+- Adds a **Review POIs** tile that opens the nearby vote screen directly
+- Keeps ride notifications available as a fallback entrypoint during rides
 - Fetches POIs from Firebase and caches them locally for offline use
-- Lets you add POIs from the app drawer or from Control Center while riding
-- Lets you review nearby cached POIs and upvote or downvote them from the app drawer or Control Center
-- Refreshes the visible map layer immediately after a successful add
+- Refreshes the visible map layer immediately after a successful add or vote
 
 ## POI Types
 
@@ -52,51 +53,48 @@ Karoo POI Map adds a shared POI layer to [Hammerhead Karoo](https://www.hammerhe
 
 ## Usage
 
-### Viewing POIs
+### Ride Setup
 
-Start a ride and enable the POI map layer on the Karoo map. Nearby POIs are fetched as you move and cached locally so recently seen points remain available when connectivity drops.
+1. Start a ride
+2. Enable the **Karoo POI Map** layer on the Karoo map
+3. Use the **Add POI** tile to log a new point
+4. Use the **Review POIs** tile to vote on nearby cached points
 
-### Adding a POI During a Ride
+Nearby POIs are fetched as you move and cached locally so recently seen points remain available when connectivity drops.
 
-1. Open Control Center
-2. Tap the **POI Map** action
-3. Wait for the current location to load
-4. Choose a POI type
-5. Optionally enter a name
-6. Tap **Add Point**
+### Add POI Tile
 
-After saving, the add screen closes and returns to the ride map.
-
-### Adding a POI From the App Drawer
-
-1. Open **Karoo POI Map**
+1. Open the **Add POI** tile
 2. Wait for the current location to load
 3. Choose a POI type
 4. Optionally enter a name
 5. Tap **Add Point**
 
-### Voting on Nearby POIs
+After saving, the add screen closes and returns to the ride flow.
 
-From the app drawer:
+### Review POIs Tile
 
-1. Open **Karoo POI Map**
-2. Tap **Review Nearby POIs**
-3. Wait for the nearby cached list to load
-4. Upvote useful POIs or downvote stale ones
-
-During a ride:
-
-1. Open Control Center
-2. Tap the **POI Map** vote action
-3. Review nearby cached POIs
-4. Submit an upvote or downvote
+1. Open the **Review POIs** tile
+2. Wait for the nearby cached list to load
+3. Upvote useful POIs or downvote stale ones
+4. Submit your vote
 
 Votes are submitted once per rider account and the map refreshes after a successful vote.
+
+### Fallback Entry Points
+
+If you prefer, or if you are troubleshooting the tile behavior:
+
+1. Open **Karoo POI Map** from the app drawer
+2. Add a POI from the main screen
+3. Tap **Review Nearby POIs** to open the vote screen
+4. During a ride, the Control Center notifications still act as backup shortcuts
 
 ## Notes
 
 - The app uses anonymous Firebase authentication in the background
 - POIs are cached on-device in shared preferences
+- This is currently a beta release
 
 ## License
 
