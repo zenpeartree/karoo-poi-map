@@ -10,6 +10,7 @@ import io.hammerhead.karooext.extension.KarooExtension
 import io.hammerhead.karooext.internal.Emitter
 import io.hammerhead.karooext.models.MapEffect
 import io.hammerhead.karooext.models.OnLocationChanged
+import io.hammerhead.karooext.models.RideState
 import io.hammerhead.karooext.models.ShowSymbols
 import io.hammerhead.karooext.models.SystemNotification
 
@@ -19,6 +20,7 @@ class KarooPoiExtension : KarooExtension("karoo-poi-map", "1") {
         private const val TAG = "KarooPoiExt"
         private const val FETCH_RADIUS_KM = 10.0
         private const val MIN_MOVE_METERS = 500.0
+        private const val NOTIFICATION_REFRESH_INTERVAL_MS = 60_000L
         const val ADD_POI_INTENT = "com.zenpeartree.karoopoimap.ADD_POI"
         const val VOTE_POI_INTENT = "com.zenpeartree.karoopoimap.VOTE_POI"
         const val REFRESH_MAP_INTENT = "com.zenpeartree.karoopoimap.REFRESH_MAP"
@@ -31,9 +33,12 @@ class KarooPoiExtension : KarooExtension("karoo-poi-map", "1") {
 
     private lateinit var karooSystem: KarooSystemService
     private var locationConsumerId: String? = null
+    private var rideStateConsumerId: String? = null
     private var lastFetchLat = 0.0
     private var lastFetchLng = 0.0
     private var mapEmitter: Emitter<MapEffect>? = null
+    private var rideActive = false
+    private var lastNotificationRefreshMs = 0L
     private var addNotificationShown = false
     private var voteNotificationShown = false
     private val refreshReceiver = object : BroadcastReceiver() {
@@ -53,19 +58,58 @@ class KarooPoiExtension : KarooExtension("karoo-poi-map", "1") {
         karooSystem.connect { connected ->
             if (connected) {
                 Log.i(TAG, "Connected to Karoo System")
+                subscribeToRideState()
             } else {
                 Log.w(TAG, "Failed to connect to Karoo System")
             }
         }
     }
 
-    private fun showRideNotifications() {
-        showAddPoiNotification()
-        showVotePoiNotification()
+    private fun subscribeToRideState() {
+        if (rideStateConsumerId != null) return
+
+        rideStateConsumerId = karooSystem.addConsumer<RideState>(
+            onError = { Log.w(TAG, "Ride state error: $it") },
+        ) { state ->
+            onRideStateChanged(state)
+        }
     }
 
-    private fun showAddPoiNotification() {
-        if (addNotificationShown) return
+    private fun onRideStateChanged(state: RideState) {
+        val wasRideActive = rideActive
+        rideActive = state !is RideState.Idle
+        Log.i(TAG, "Ride state changed: ${state.javaClass.simpleName}")
+
+        if (!rideActive) {
+            addNotificationShown = false
+            voteNotificationShown = false
+            lastNotificationRefreshMs = 0L
+            return
+        }
+
+        val enteringRide = !wasRideActive
+        if (enteringRide) {
+            addNotificationShown = false
+            voteNotificationShown = false
+            lastNotificationRefreshMs = 0L
+        }
+
+        refreshRideNotifications(force = enteringRide)
+    }
+
+    private fun refreshRideNotifications(force: Boolean = false) {
+        if (!rideActive) return
+
+        val now = System.currentTimeMillis()
+        if (!force && now - lastNotificationRefreshMs < NOTIFICATION_REFRESH_INTERVAL_MS) return
+
+        showAddPoiNotification(force)
+        showVotePoiNotification(force)
+        lastNotificationRefreshMs = now
+    }
+
+    private fun showAddPoiNotification(force: Boolean = false) {
+        if (addNotificationShown && !force) return
         val dispatched = karooSystem.dispatch(
             SystemNotification(
                 id = ADD_NOTIFICATION_ID,
@@ -80,8 +124,8 @@ class KarooPoiExtension : KarooExtension("karoo-poi-map", "1") {
         Log.i(TAG, "Add POI notification dispatched: $dispatched")
     }
 
-    private fun showVotePoiNotification() {
-        if (voteNotificationShown) return
+    private fun showVotePoiNotification(force: Boolean = false) {
+        if (voteNotificationShown && !force) return
         val dispatched = karooSystem.dispatch(
             SystemNotification(
                 id = VOTE_NOTIFICATION_ID,
@@ -99,7 +143,7 @@ class KarooPoiExtension : KarooExtension("karoo-poi-map", "1") {
     override fun startMap(emitter: Emitter<MapEffect>) {
         mapEmitter = emitter
         Log.i(TAG, "Map layer started")
-        showRideNotifications()
+        refreshRideNotifications(force = true)
 
         // Show cached POIs immediately
         val cached = repository?.getCachedPois() ?: emptyList()
@@ -117,6 +161,8 @@ class KarooPoiExtension : KarooExtension("karoo-poi-map", "1") {
     }
 
     private fun onLocationUpdate(lat: Double, lng: Double) {
+        refreshRideNotifications()
+
         val distance = haversineMeters(lastFetchLat, lastFetchLng, lat, lng)
         if (distance < MIN_MOVE_METERS && lastFetchLat != 0.0) return
 
@@ -138,6 +184,7 @@ class KarooPoiExtension : KarooExtension("karoo-poi-map", "1") {
 
     override fun onDestroy() {
         locationConsumerId?.let { karooSystem.removeConsumer(it) }
+        rideStateConsumerId?.let { karooSystem.removeConsumer(it) }
         mapEmitter = null
         unregisterReceiver(refreshReceiver)
         karooSystem.disconnect()
