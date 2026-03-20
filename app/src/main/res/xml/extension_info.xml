@@ -5,6 +5,18 @@
     icon="@drawable/ic_launcher"
     scansDevices="false"
     mapLayer="true">
+    <DataType
+        typeId="add-poi-field"
+        displayName="@string/add_poi"
+        description="@string/add_poi_field_description"
+        graphical="true"
+        icon="@drawable/ic_launcher" />
+    <DataType
+        typeId="review-pois-field"
+        displayName="@string/review_pois"
+        description="@string/review_pois_field_description"
+        graphical="true"
+        icon="@drawable/ic_launcher" />
     <BonusAction
         actionId="add-poi"
         displayName="@string/add_poi" />

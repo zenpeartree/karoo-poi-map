@@ -1,12 +1,14 @@
 # Karoo POI Map
 
-Karoo POI Map adds a shared POI layer to [Hammerhead Karoo](https://www.hammerhead.io/) bike computers. It gives you two quick tile entrypoints on-device so you can add a point or review nearby ones without hunting through a disappearing notification tab.
+Karoo POI Map adds a shared POI layer to [Hammerhead Karoo](https://www.hammerhead.io/) bike computers. It gives you dedicated ride fields and tile entrypoints so you can add a point or review nearby ones without depending on the notification tab.
 
-**[Download the latest APK](https://github.com/zenpeartree/karoo-poi-map/releases/download/v1.0.2-beta/app-release.apk)**
+**[Download the latest APK](https://github.com/zenpeartree/karoo-poi-map/releases/download/v1.0.3-beta/app-release.apk)**
 
 ## What It Does
 
 - Shows nearby community-submitted POIs as a Karoo map layer during rides
+- Adds an **Add POI** ride field that opens the add screen directly
+- Adds a **Review POIs** ride field that opens the nearby vote screen directly
 - Adds an **Add POI** tile that opens the add screen directly
 - Adds a **Review POIs** tile that opens the nearby vote screen directly
 - Keeps ride notifications available as a fallback entrypoint during rides
@@ -57,10 +59,19 @@ Karoo POI Map adds a shared POI layer to [Hammerhead Karoo](https://www.hammerhe
 
 1. Start a ride
 2. Enable the **Karoo POI Map** layer on the Karoo map
-3. Use the **Add POI** tile to log a new point
-4. Use the **Review POIs** tile to vote on nearby cached points
+3. Add the **Add POI** and **Review POIs** ride fields to a ride page if you want one-tap in-ride access
+4. Use either the ride fields or the tiles to log a new point or review nearby cached points
 
 Nearby POIs are fetched as you move and cached locally so recently seen points remain available when connectivity drops.
+
+### Ride Fields
+
+1. Open the Karoo ride page editor
+2. Add the **Add POI** field to a page
+3. Add the **Review POIs** field to a page
+4. Tap either field during a ride to open the matching screen
+
+These ride fields are the most direct way to launch the POI flows from the ride screen.
 
 ### Add POI Tile
 

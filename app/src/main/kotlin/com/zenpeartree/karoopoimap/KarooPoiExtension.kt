@@ -8,6 +8,7 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import io.hammerhead.karooext.KarooSystemService
+import io.hammerhead.karooext.extension.DataTypeImpl
 import io.hammerhead.karooext.extension.KarooExtension
 import io.hammerhead.karooext.internal.Emitter
 import io.hammerhead.karooext.models.MapEffect
@@ -20,6 +21,8 @@ class KarooPoiExtension : KarooExtension("karoo-poi-map", "1") {
 
     companion object {
         private const val TAG = "KarooPoiExt"
+        private const val FIELD_ADD_POI = "add-poi-field"
+        private const val FIELD_REVIEW_POIS = "review-pois-field"
         private const val FETCH_RADIUS_KM = 10.0
         private const val MIN_MOVE_METERS = 500.0
         private const val NOTIFICATION_REFRESH_INTERVAL_MS = 15_000L
@@ -33,6 +36,23 @@ class KarooPoiExtension : KarooExtension("karoo-poi-map", "1") {
 
         var repository: PoiRepository? = null
             private set
+    }
+
+    override val types: List<DataTypeImpl> by lazy {
+        listOf(
+            RideActionField(
+                typeId = FIELD_ADD_POI,
+                titleResId = R.string.ride_field_add_title,
+                subtitleResId = R.string.ride_field_add_subtitle,
+                activityClass = AddPoiActivity::class.java,
+            ),
+            RideActionField(
+                typeId = FIELD_REVIEW_POIS,
+                titleResId = R.string.ride_field_review_title,
+                subtitleResId = R.string.ride_field_review_subtitle,
+                activityClass = VotePoiActivity::class.java,
+            ),
+        )
     }
 
     private lateinit var karooSystem: KarooSystemService

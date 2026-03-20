@@ -3,4 +3,10 @@
     <string name="app_name">Karoo POI Map</string>
     <string name="add_poi">Add POI</string>
     <string name="review_pois">Review POIs</string>
+    <string name="add_poi_field_description">Ride field that opens the Add POI screen</string>
+    <string name="review_pois_field_description">Ride field that opens the Review POIs screen</string>
+    <string name="ride_field_add_title">Add POI</string>
+    <string name="ride_field_add_subtitle">Tap to log a point</string>
+    <string name="ride_field_review_title">Review POIs</string>
+    <string name="ride_field_review_subtitle">Tap to vote nearby</string>
 </resources>
